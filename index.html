@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baccarat Prediction</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #343a40; 
+            color: #ffffff; 
+        }
+        .card {
+            background-color: #495057; 
+            border: 1px solid #6c757d; 
+        }
+        .circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin: 5px;
+            color: white; 
+        }
+        .banker {
+            background-color: lightcoral; 
+        }
+        .player {
+            background-color: lightblue; 
+        }
+        .tie {
+            background-color: lightgreen; 
+        }
+        .highlight {
+            border: 2px solid #ffffff; 
+        }
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); 
+            gap: 10px; 
+            margin-top: 10px;
+            border: 1px solid #6c757d; 
+            padding: 10px; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="card mt-4">
+            <div class="card-body">
+                <h2>แนวทางรอบถัดไป</h2>
+                <span class="prediction-highlight d-inline ml-2" id="prediction-result" style="font-size: 1.5rem; font-weight: bold;">
+                    {% if prediction %}
+                        <i class="fas fa-circle text-{{ 'danger' if prediction == 'Banker' else 'primary' if prediction == 'Player' else 'success' }} mr-1"></i>
+                        <span class="text-{{ 'danger' if prediction == 'Banker' else 'primary' if prediction == 'Player' else 'success' }}">{{ prediction }}</span>
+                    {% else %}
+                        <span>ไม่มีการทำนาย</span>
+                    {% endif %}
+                </span>
+                <div class="mt-2">
+                    <div>Banker: <span class="text-danger">{{ probabilities[0] }}%</span></div>
+                    <div>Player: <span class="text-primary">{{ probabilities[1] }}%</span></div>
+                    <div>Tie: <span class="text-success">{{ probabilities[2] }}%</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <form action="/submit" method="post">
+                    <div class="form-group">
+                        <label for="result">เลือกผลลัพธ์จริง:</label>
+                        <select name="result" id="result" class="form-control" onchange="updatePrediction()">
+                            <option value="Banker" {% if prediction == "Banker" %} selected {% endif %}>Banker</option>
+                            <option value="Player" {% if prediction == "Player" %} selected {% endif %}>Player</option>
+                            <option value="Tie" {% if prediction == "Tie" %} selected {% endif %}>Tie</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">ส่งผลลัพธ์</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <h2>ผลในรอบก่อนหน้านี้</h2>
+                <div class="result-grid">
+                    {% if historical_results|length > 0 %}
+                        {% for result in historical_results[-35:] %}
+                            <div class="circle {% if result == 'Banker' %}banker{% elif result == 'Player' %}player{% elif result == 'Tie' %}tie{% endif %} {% if loop.last %}highlight{% endif %}">
+                                {% if result == "Banker" %} B
+                                {% elif result == "Player" %} P
+                                {% elif result == "Tie" %} T
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center" colspan="6">ไม่มีผลลัพธ์</div>
+                    {% endif %}
+                </div>
+                {% if historical_results|length < 6 %}
+                    <div class="alert alert-danger mt-3">
+                        กรุณาใส่ผลลัพธ์อย่างน้อย 6 รายการเพื่อเริ่มการทำนาย.
+                    </div>
+                {% endif %}
+                <form action="/clear_history" method="post" class="mt-3">
+                    <button type="submit" class="btn btn-danger btn-block">ล้างประวัติ</button>
+                </form>
+            </div>
+        </div>        
+    </div>
+    
+    <script>
+        function updatePrediction() {
+            var select = document.getElementById("result");
+            var selectedValue = select.value;
+            var predictionResult = document.getElementById("prediction-result");
+            
+            var iconClass = selectedValue === "Banker" ? 'text-danger' : (selectedValue === "Player" ? 'text-primary' : 'text-success');
+            predictionResult.innerHTML = `<i class="fas fa-circle ${iconClass} mr-1"></i><span class="${iconClass}">${selectedValue}</span>`;
+        }
+        
+        window.onload = function() {
+            updatePrediction();
+        };
+    </script>
+</body>
+</html>
