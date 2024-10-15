@@ -3,6 +3,3 @@ joblib
 pandas
 scikit-learn
 uwsgi
-Flask==<version>
-pandas==<version>
-scikit-learn==<version>
